@@ -1,0 +1,147 @@
+'use client'
+import { useState, useEffect } from 'react';
+import './globals.css';
+import { motion } from 'framer-motion';
+import AddModal from '@/components/ui/addModal'
+interface Memory {
+  color: string;
+  text?: string;
+  date?: {
+    yy: number;
+    mm: number;
+    dd: number;
+  }
+}
+interface Modal{
+  color: string;
+  isOpen: boolean;
+}
+
+export default function Home() {
+  const [leds, setLeds] = useState<Memory[]>([]);
+  const [memory, setMemory] = useState<Memory>();
+  const [coreMemories, setCoreMemories] = useState<Memory[]>([]);
+  const [selectedLED, setSelectedLED] = useState<string | null>(null);
+  const [modal, setModal] = useState<Modal>({color:" ", isOpen:false})
+  const [selectModal, setSelectedModal] = useState<Memory|null>(null)
+  useEffect(() => {
+    fetchLEDStatus();
+    fetchCoreMemories();
+  }, []);
+
+  const fetchLEDStatus = () => {
+    const ledArray = JSON.parse(localStorage.getItem('leds') || '[]');
+    setLeds(ledArray);
+  };
+
+  const fetchCoreMemories = () => {
+    const coreMemoryArray = JSON.parse(localStorage.getItem('coreMemories') || '[]');
+    setCoreMemories(coreMemoryArray);
+  };
+
+  const saveLEDStatus = (ledArray: string[]) => {
+    localStorage.setItem('leds', JSON.stringify(ledArray));
+  };
+
+  const saveCoreMemories = (coreMemoryArray: Memory[]) => {
+    localStorage.setItem('coreMemories', JSON.stringify(coreMemoryArray));
+  };
+
+  const toggleLED = (color: string, action: string) => {
+    let newLeds:Memory[] = [...leds];
+    if (action === 'add') {
+      setModal({color:color,isOpen:true});
+      // setSelectedModal({color:color})
+     //newLeds.push({ color:color});
+    } else {
+      // newLeds = newLeds.filter(led => led !== color);
+    }
+    setLeds(newLeds);
+    //saveLEDStatus(newLeds);
+  };
+
+  // const addMemory = () => {
+  //   if (selectedLED) {
+  //     const newMemory = { color: selectedLED, text: memory };
+  //     const newCoreMemories = [...coreMemories, newMemory];
+  //     setCoreMemories(newCoreMemories);
+  //     saveCoreMemories(newCoreMemories);
+  //     setMemory('');
+  //     setSelectedLED(null);
+  //   }
+  // };
+
+  // const markAsCoreMemory = (color: string) => {
+  //   const memory = coreMemories.find((mem) => mem.color === color);
+  //   if (!memory) {
+  //     const newMemory = { color, text: `Core memory for ${color}` };
+  //     const newCoreMemories = [...coreMemories, newMemory];
+  //     setCoreMemories(newCoreMemories);
+  //     saveCoreMemories(newCoreMemories);
+  //   }
+  // };
+
+  return (
+    <div className={`max-w-[1280px] m-auto min-h-[100vh] h-full`}>
+      <div className='w-full h-fit flex flex-col font-pretendard '>
+        <h2 className='text-3xl font-pretendard mt-40'>당신은 오늘 어떤 기분이신가요?</h2>
+        <div className='max-w-[1000px] mx-auto mt-10 w-full grid grid-cols-5'>
+          <div className='m-auto flex flex-col items-center'>
+            <button onClick={() => toggleLED('yellow', 'add')} className='bg-yellow-300 w-32 h-32 rounded-full'></button>
+            <p>즐거움</p>
+          </div>
+          <div className='m-auto flex flex-col items-center'>
+            <button onClick={() => toggleLED('red', 'add')} className='bg-red-300 w-32 h-32 rounded-full m-auto'></button>
+            <p>분노</p>
+          </div>
+          <div className='m-auto flex flex-col items-center'>
+            <button onClick={() => toggleLED('blue', 'add')} className='bg-blue-300 w-32 h-32 rounded-full m-auto'></button>
+            <p>슬픔</p>
+          </div>
+          <div className='m-auto flex flex-col items-center'>
+            <button onClick={() => toggleLED('green', 'add')} className='bg-green-300 w-32 h-32 rounded-full m-auto'></button>
+            <p>질투</p>
+          </div>
+          <div className='m-auto flex flex-col items-center'>
+            <button onClick={() => toggleLED('purple', 'add')} className='bg-purple-300 w-32 h-32 rounded-full m-auto'></button>
+            <p>두려움</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        {leds.map((led, index) => (
+          <div key={`led-${index}`} className='flex'>
+            <button onClick={() => { setSelectedLED(led) }} className={`bg-${led}-300 w-32 h-32 rounded-full`}></button>
+            <p>{}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* {selectedLED && (
+        <div className={`memoryForm`}>
+          <h2>Register a Memory for {selectedLED}</h2>
+          <input
+            type="text"
+            value={memory}
+            onChange={(e) => setMemory(e.target.value)}
+          />
+          <button onClick={addMemory}>Add Memory</button>
+        </div>
+      )}
+      <div className={`coreMemories`}>
+        <h2>Core Memories</h2>
+        {coreMemories.map((memory, index) => (
+          <div key={index} className={`memory`}>
+            <div
+              className={`led`}
+              style={{ backgroundColor: memory.color }}
+              onClick={() => markAsCoreMemory(memory.color)}
+            ></div>
+            <p>{memory.text}</p>
+          </div>
+        ))}
+      </div> */}
+      <AddModal modal={modal} setModal={setModal} setSelectedModal={setSelectedModal} />
+  </div>
+  );
+}

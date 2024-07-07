@@ -1,0 +1,42 @@
+
+.custom-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 15; /* Ensure the overlay is above other content */
+  }
+  
+  .custom-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    outline: none;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    z-index: 20; /* Ensure the modal itself is above the overlay */
+  }
+  
+  .red{
+    background-color: red;
+  }
+  
+  .blue{
+    background-color: blue;
+  }
+  .yellow{
+    background-color: yellow;
+  }
+  .green{
+    background-color: green;
+  }
+  .purple{
+    background-color: purple;
+  }

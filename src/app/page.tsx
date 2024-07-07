@@ -1,112 +1,205 @@
-import Image from "next/image";
+'use client'
+import { useState, useEffect, FormEvent, memo } from 'react';
+import './globals.css';
+import { motion } from 'framer-motion';
+import AddModal from '@/components/ui/addModal';
+import formatDateString from '@/utils/formatDateString';
+import MemoryModals from '@/components/ui/MemoryModals';
+import Select from '@/components/select'
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import CoreModals from '@/components/ui/CoreModals';
+import Banner from '@/components/ui/banner';
+interface Memory {
+  _id: string;
+  text: string;
+  color: string;
+  date: string;
+}
+
+interface Modal {
+  color: string;
+  isOpen: boolean;
+}
 
 export default function Home() {
+  const router = useRouter()
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [modal, setModal] = useState<Modal>({ color: '', isOpen: false });
+  const [selectMemory, setSelectMemory] = useState<Memory | null>(null);
+  const [input, setInput] = useState<string>('');
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [corememories, setCorememories] = useState<Memory[]>([])
+  const [selectCoremomory, setSelectCorememory] = useState<Memory | null>(null);
+  const [coreModalOpen, setCoreModalOpen] = useState<boolean>(false)
+  useEffect(() => {
+    fetchMemories()
+    fetchCorememories()
+  }, [])
+
+  const fetchMemories = async () => {
+    const response = await fetch('/api/memories')
+    const data = await response.json()
+    setMemories(data)
+  }
+  const fetchCorememories = async () => {
+    const res = await fetch('/api/corememories')
+    const data = await res.json()
+    setCorememories(data);
+  }
+
+  const handleMemorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const date = formatDateString(new Date().toISOString());
+    try {
+      const res = await fetch('/api/memories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: input, date: date, color: modal.color })
+      })
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'POST 실패')
+      }
+
+      setInput('');
+      setModal({ color: '', isOpen: false });
+      fetchMemories();
+      router.refresh();
+    } catch (error) {
+      console.error("POST 실패", error)
+    }
+  };
+  const deleteMemory = async (id: string) => {
+    const response = await fetch(`/api/memories?id=${id}`, {
+      method: 'DELETE',
+    })
+    if (response.ok) {
+      fetchMemories()
+      router.refresh()
+    }
+  }
+
+  const deleteCore = async (id: string) => {
+    const res = await fetch(`/api/corememories?id=${id}`, {
+      method: 'DELETE'
+    })
+    if (res.ok) {
+      fetchCorememories()
+      router.refresh()
+    }
+  }
+
+  const handleCorememories = async () => {
+    console.log(selectMemory)
+    setIsOpen(false);
+    if (corememories.length === 5) {
+      alert("핵심기억은 5개까지 등록 가능합니다.")
+    } else {
+      const response = await fetch('/api/corememories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: selectMemory?.text, date: selectMemory?.date, color: selectMemory?.color, _id: selectMemory?._id }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add');
+      }
+      fetchCorememories();
+      router.refresh()
+    }
+  }
+
+
+
+  const onButtonClick = (color: string) => {
+    setModal({ color, isOpen: true });
+  };
+
+  const onMemoryClick = (memory: Memory) => {
+    setSelectMemory(memory);
+    setIsOpen(true);
+  };
+  const onCoreMemoryClick = (CoreMemory: Memory) => {
+    setSelectCorememory(CoreMemory);
+    setCoreModalOpen(true);
+  }
+  let CoreColor: string[] = [];
+  for (let i = corememories.length - 1; i >= 0; i--) {
+    let temp: string;
+    if (corememories[i].color === 'red') temp = "#FFCEFF";
+    else if (corememories[i].color === 'yellow') temp = "#FFFFD1";
+    else if (corememories[i].color === 'blue') temp = "#ADCDFF";
+    else if (corememories[i].color === 'purple') temp = "#D6BBFF";
+    else temp = "#C9E7DB";
+
+    CoreColor.push(`${temp}`);
+  }
+  const Corebg = CoreColor.join(', ');
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className={`h-full w-full mb-40`}>
+      <Banner Corebg={Corebg}/>
+      <div className='max-w-[1280px] w-full mx-auto relative pt-[230px]'>
+        <motion.h1 className="w-full text-center text-2xl md:text-4xl font-pretendard text-black font-bold">
+          당신의 기억을 보관하세요
+        </motion.h1>
+        <Select onButtonClick={onButtonClick} />
+        {corememories && (<div className='w-full'>
+          <h2 className='font-pretendard font-semibold text-3xl ml-4 mt-24'>핵심기억 보관함</h2>
+          <div className='w-full mt-4'>
+            <div className='flex w-full max-w-[1000px] h-64 flex-wrap mx-auto pt-12'>
+              {corememories.slice().reverse().map((corememory, idx) => (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                      type: "spring",
+                      stiffness: 100,
+                      damping: 12,
+                      duration: 0.6
+                    }
+                  }}
+                  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }} key={` corememory-${idx}`} className='flex mx-auto flex-col items-center'>
+                  <button onClick={() => { onCoreMemoryClick(corememory) }} className={`memory_${corememory.color} w-24 h-24 md:w-32 md:h-32 rounded-full`}></button>
+                  <p className='mobile:text-base text-sm whitespace-nowrap'>{corememory?.date}</p>
+                </motion.div>))}
+            </div>
+          </div>
+        </div>)
+        }<div>
+          <h2 className='text-3xl font-pretendard font-semibold mt-24 ml-4'>기억 보관함</h2>
+          <div className='max-w-[1000px] flex-wrap gap-5 mx-auto mt-10 w-full flex'>
+            {memories.slice().reverse().map((value, index) => (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 12,
+                    duration: 0.6
+                  }
+                }}
+                whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                key={`value-${index}`}
+                className=' flex flex-col mx-auto items-center'
+              >
+                <button onClick={() => { onMemoryClick(value) }} className={`memory_${value.color}  w-24 h-24 md:w-32 md:h-32  rounded-full`}></button>
+                <p className='mobile:text-base text-sm'>{value.date}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        <CoreModals coreModalOpen={coreModalOpen} setCoreModalOpen={setCoreModalOpen} deleteCore={deleteCore} selectCoremomory={selectCoremomory} />
+        <MemoryModals isOpen={isOpen} setIsOpen={setIsOpen} selectMemory={selectMemory} deleteMemory={deleteMemory} handleCorememories={handleCorememories} />
+        <AddModal modal={modal} setModal={setModal} input={input} setInput={setInput} handleMemorySubmit={handleMemorySubmit} />
       </div>
     </main>
   );
