@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-export default function Banner({ Corebg }): string {
+export default function Banner({ Corebg }: { Corebg: string }) {
     const settings = {
         infinite: true,
         speed: 300,

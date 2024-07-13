@@ -4,7 +4,7 @@ import GetScrollY from '@/hooks/getScrollY'
 function Navbar() {
     const getscrollY = GetScrollY();
     return (
-        <header className={`fixed left-0 right-0 top-0 h-[72px] ${getscrollY>150&&"bg-white"} z-20`}>
+        <header className={`fixed left-0 right-0 top-0 h-[72px] ${getscrollY>150&&"backdrop-blur-xl"} z-20`}>
             <div className="max-w-[1280px] m-auto w-full h-full flex justify-between items-center">
                 <div className="ml-4 w-24 md:w-44">
                     <Image src="/logo.svg" alt="Logo" width={200} height={60} className="bg-transparent"/>

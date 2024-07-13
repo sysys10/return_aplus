@@ -141,7 +141,7 @@ export default function Home() {
   const Corebg = CoreColor.join(', ');
   return (
     <main className={`h-full w-full mb-40`}>
-      <Banner Corebg={Corebg}/>
+      <Banner Corebg={Corebg} />
       <div className='max-w-[1280px] w-full mx-auto relative pt-[230px]'>
         <motion.h1 className="w-full text-center text-2xl md:text-4xl font-pretendard text-black font-bold">
           당신의 기억을 보관하세요
@@ -173,7 +173,7 @@ export default function Home() {
         </div>)
         }<div>
           <h2 className='text-3xl font-pretendard font-semibold mt-24 ml-4'>기억 보관함</h2>
-          <div className='max-w-[1000px] flex-wrap gap-5 mx-auto mt-10 w-full flex'>
+          <div className='max-w-[1000px] flex-wrap gap-10 mx-auto justify-center mt-10 w-full flex'>
             {memories.slice().reverse().map((value, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -189,7 +189,7 @@ export default function Home() {
                 }}
                 whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
                 key={`value-${index}`}
-                className=' flex flex-col mx-auto items-center'
+                className=' flex flex-col items-center'
               >
                 <button onClick={() => { onMemoryClick(value) }} className={`memory_${value.color}  w-24 h-24 md:w-32 md:h-32  rounded-full`}></button>
                 <p className='mobile:text-base text-sm'>{value.date}</p>
@@ -200,7 +200,14 @@ export default function Home() {
         <CoreModals coreModalOpen={coreModalOpen} setCoreModalOpen={setCoreModalOpen} deleteCore={deleteCore} selectCoremomory={selectCoremomory} />
         <MemoryModals isOpen={isOpen} setIsOpen={setIsOpen} selectMemory={selectMemory} deleteMemory={deleteMemory} handleCorememories={handleCorememories} />
         <AddModal modal={modal} setModal={setModal} input={input} setInput={setInput} handleMemorySubmit={handleMemorySubmit} />
-      </div>
+        <div className='flex flex-wrap mt-40 max-w-[1000px] mx-auto'>
+          {corememories.slice().reverse().map((v, i) => (
+            <motion.div key={`corebg-${i}`} initial={{ opacity: 0,y:50 }}  whileHover={{ scale: 1.25, transition: { duration: 0.1 } }}  whileInView={{ opacity: 0.8,y:0 }} transition={{ duration: 0.1 }} viewport={{ margin: "100px" }} className={`text-2xl flex flex-col mt-32 items-center p-12 mx-auto h-96 rounded-3xl max-w-96 w-full memory_${v.color}`}>
+              <p className='opacity-100 font-coolguy text-4xl'>{v.date}</p><p className='text-xl text-black font-semibold font-pretendard'></p>
+              <p className='mt-4 text-left w-full font-semibold font-pretendard text-base'>{v.text}</p>
+            </motion.div>
+          ))}
+        </div></div>
     </main>
   );
 }
